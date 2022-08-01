@@ -85,15 +85,22 @@ def view_product():
 
 def add_product():
     name = input("Please enter name of new product: ")
-    check = True
-    while check:
+    check_price = True
+    while check_price:
         try:
             price = int(input("Please enter price in cents with no currency symbol: "))
+        except ValueError:
+            print("Error: Invalid price. Try again")
+        else:
+            check_price = False
+    check_quantity = True
+    while check_quantity:
+        try:
             quantity = int(input("Please enter quantity: "))
         except ValueError:
-            print("Error: Invalid price or quantity. Try again")
+            print("Error: Invalid quantity. Try again")
         else:
-            check = False
+            check_quantity = False
     product_input = Product(product_name=name, product_price=price,
                             product_quantity=quantity, date_updated=datetime.datetime.now())
     duplicate = session.query(Product).filter_by(product_name=name).one_or_none()
@@ -101,7 +108,10 @@ def add_product():
         for item in session.query(Product).filter_by(product_name=name):
             existing_date = item.date_updated
         if product_input.date_updated >= existing_date:
-            session.add(product_input)
+            item.product_name = name
+            item.product_price = price
+            item.product_quantity = quantity
+            item.date_updated = datetime.datetime.now()
             session.commit()
             print("Duplicate item found, item updated successfully.\n")
         else:
@@ -129,6 +139,7 @@ def backup():
                 'product_quantity': quantity,
                 'date_updated': date
             })
+        input('Backup successful. Press enter to return to menu')
 
 
 if __name__ == "__main__":
